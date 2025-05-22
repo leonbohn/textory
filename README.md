@@ -26,8 +26,3 @@ Optional: Additional arguments to pass to latexmk (space-separated).
 #### Output
 - `textory_data.csv`: CSV file with columns Timestamp,Commit Hash,Page Count.
 - `textory_report.html`: HTML report embedding the CSV data.
-
-
-## Notes
-Requires latexmk and git to be installed and available in your PATH.
-The tool will prompt before overwriting existing output files.
