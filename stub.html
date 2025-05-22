@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TexTory Page Count History</title>
+    <script src="https://cdn.jsdelivr.net/npm/moment"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+    <style>
+        body { font-family: sans-serif; }
+        #chartContainer { width: 80%; margin: 20px auto; }
+    </style>
+</head>
+<body>
+    <h1>TexTory Page Count History</h1>
+    <div id="chartContainer">
+        <canvas id="pageCountChart"></canvas>
+    </div>
+
+    <script>
+        const texToryData = `%%DATA%%`;
+
+        // Parse the CSV data
+        const lines = texToryData.trim().split('\n');
+        const headers = lines[0].split(',');
+        const dataPoints = [];
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',');
+            const timestampString = values[0];
+            const parsedDate = new Date(timestampString);
+
+            // Log the parsed date to the console to see what JavaScript is making of it
+            console.log(`Original Timestamp: ${timestampString}, Parsed Date: ${parsedDate}`);
+
+            dataPoints.push({
+                timestamp: parsedDate,
+                commitHash: values[1],
+                pageCount: parseInt(values[2])
+            });
+        }
+
+
+        // Prepare data for Chart.js
+        const labels = dataPoints.map(dp => dp.timestamp.toLocaleDateString() + ' ' + dp.timestamp.toLocaleTimeString());
+        const pageCounts = dataPoints.map(dp => dp.pageCount);
+        // Find the earliest and latest timestamps
+        
+        // Sort the data points by timestamp (ascending order)
+        dataPoints.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+
+    let minTimestamp = Infinity;
+    let maxTimestamp = -Infinity;
+    dataPoints.forEach(dp => {
+        minTimestamp = Math.min(minTimestamp, dp.timestamp.getTime());
+        maxTimestamp = Math.max(maxTimestamp, dp.timestamp.getTime());
+    });
+
+    // Convert back to Date objects for Chart.js
+    const minDate = new Date(minTimestamp);
+    const maxDate = new Date(maxTimestamp);
+
+    // Get the canvas element
+    const ctx = document.getElementById('pageCountChart').getContext('2d');
+
+    // Create the chart
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Page Count',
+                data: pageCounts,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        tooltipFormat: 'll HH:mm',
+                        parser: 'iso8601',
+                        adapter: 'moment',
+                        min: minDate, // Set the minimum x-axis value
+                        max: maxDate  // Set the maximum x-axis value
+                    },
+                    title: {
+                        display: true,
+                        text: 'Timestamp'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Page Count'
+                    },
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Dissertation Page Count Over Time'
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
+                        label: function(context) {
+                            return 'Page Count: ' + context.formattedValue;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    </script>
+</body>
+</html>
